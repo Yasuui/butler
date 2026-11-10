@@ -6,7 +6,7 @@ Prices are from Anthropic's published model table (cached 2026-11-03) and Apple'
 
 ---
 
-## D1. Blocker: Xcode is not installed and the disk is 95% full (Open)
+## D1. Blocker: Xcode is not installed and the disk is 95% full (Decided 2026-11-10: Yonis installs Xcode 27; Phase 1 starts when it is ready)
 
 This Mac has only the Command Line Tools (Swift 6.4) and about 10 GB free. Phase 1 needs Xcode 27 for previews, the Preview Snapshot MCP tool and simulators. Xcode plus one iOS simulator runtime takes roughly 40–50 GB once installed, with more for DerivedData during builds.
 
@@ -16,7 +16,20 @@ This Mac has only the Command Line Tools (Swift 6.4) and about 10 GB free. Phase
 | B. Install Xcode, simulators and DerivedData on an external APFS SSD | ~US$80–120 for 1 TB | Works well over USB-C or Thunderbolt. The drive has to stay attached. |
 | C. Write Phase 1 code without previews | $0 | Breaks the phase gate (no snapshot proof). Not recommended. |
 
-## D2. Model stack and running cost (Open)
+## D2. Model stack and running cost (Decided 2026-11-10: use the Claude subscription)
+
+**Decision:** Butler bills Claude to Yonis's Claude plan, not a pay-as-you-go API key. Anthropic's help center (article 15036540, read 2026-11-10) says that `claude -p` and the Claude Agent SDK draw from subscription limits when signed in with the plan. Since 2026-10-07, Max, Ultra and Team plans also include monthly API credits for API keys from the linked Claude Console organization.
+
+That allows two routes, chosen in Phase 2 once the plan tier is confirmed:
+
+| Route | How it works | Tradeoff |
+| --- | --- | --- |
+| **A. `claude -p` as the planner (any paid plan)** | The runner calls Claude Code headless as a child process, with its built-in tools turned off, and gets a structured plan or recovery step back. Butler's own executor does all acting, under Policy. | Shares limits with your coding sessions. Adds a few seconds of start-up per call. Lives outside the `LanguageModelSession`, so it gets no Dynamic Profile switching. |
+| **B. Plan API credits via ClaudeForFoundationModels (Max, Ultra or Team)** | A Console API key from your linked organization, stored in the `agentos` keychain, backs a `LanguageModel` inside the session. | Cleanest integration, with prompt caching and profile switching. When the monthly credits run out, calls stop unless you allow overage. |
+
+Either way the free Apple models (on-device and Private Cloud Compute) handle triage, redaction, summaries and simple plans first, and learned skills replay without a model. When Claude's limit is reached, the errand waits in a "Waiting for Claude" state and the morning briefing reports it. It never silently switches to paid billing.
+
+The estimates below show what the same work would cost at API prices. They help size how much of the plan's usage Butler will consume.
 
 **Assumed usage:** 10 errands a day. 30% are new (planned by a model), 70% are replays of learned skills. About 30% of replays hit a UI change and need one recovery call.
 
@@ -41,7 +54,7 @@ The biggest cost levers, in order:
 
 | Item | Cost | When it is needed |
 | --- | --- | --- |
-| Apple Developer Program | US$99/year (local price varies) | Phase 3: CloudKit, APNs, Live Activity push, App Groups across devices and TestFlight all need it. Phases 1–2 run with a free Personal Team on this Mac. |
+| Apple Developer Program | US$99/year (local price varies). Not enrolled yet; enroll before Phase 3. | Phase 3: CloudKit, APNs, Live Activity push, App Groups across devices and TestFlight all need it. Phases 1–2 run with a free Personal Team on this Mac. |
 | CloudKit private database | $0 | Data counts against your own iCloud storage, not a developer bill. |
 | APNs | $0 | |
 | GitHub | $0 | Secret-scanning CI runs on a Linux runner. There is no macOS CI: macOS runners are expensive, and the Mac mini builds and tests locally. |
@@ -64,6 +77,6 @@ This Mac mini's account is already `agentos`, the dedicated agent user from the 
 
 The Phase 2 errand (Numbers to PDF) needs no browser. Playwright's bundled Chromium adds a Node runtime and several hundred MB of disk, and it runs in its own profile without your logged-in sessions. The alternative, driving Safari through the accessibility tree, uses your sessions but is less robust. Decide when the first web errand is chosen.
 
-## D7. Repository visibility (Open)
+## D7. Repository visibility (Decided 2026-11-10: stays public)
 
 The repo is **public**. That costs nothing and keeps GitHub's free secret scanning and push protection, but the design, bundle IDs and CloudKit container names are visible. Nothing secret will be committed either way: the pre-commit hook and CI gitleaks block keys, and APNs keys and API keys live only in the `agentos` keychain. On a private personal repo, GitHub's push protection is not available for free, so the local hook and CI would be the only gate.
