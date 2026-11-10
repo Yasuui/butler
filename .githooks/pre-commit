@@ -1,0 +1,25 @@
+#!/bin/sh
+# Butler pre-commit gate: no secrets, signing keys or private desktop content get committed.
+# Enable once per clone: git config core.hooksPath .githooks
+set -eu
+root="$(git rev-parse --show-toplevel)"
+
+# Signing keys and provisioning files are never committed, whatever .gitignore says.
+blocked="$(git diff --cached --name-only --diff-filter=ACMR | grep -E '\.(p8|p12|cer|mobileprovision|provisionprofile|keychain(-db)?)$|(^|/)\.env($|\.)' | grep -v '\.env\.example$' || true)"
+if [ -n "$blocked" ]; then
+  echo "pre-commit: refusing to commit signing or secret files:" >&2
+  echo "$blocked" >&2
+  exit 1
+fi
+
+if ! command -v gitleaks >/dev/null 2>&1; then
+  echo "pre-commit: gitleaks is not installed, so staged secrets cannot be checked." >&2
+  echo "Install it with: brew install gitleaks" >&2
+  exit 1
+fi
+# gitleaks 8.19+ has `git --staged`; older releases only `protect --staged`.
+if gitleaks git --help >/dev/null 2>&1; then
+  gitleaks git --pre-commit --staged --redact --no-banner "$root"
+else
+  gitleaks protect --staged --redact --no-banner --source "$root"
+fi
