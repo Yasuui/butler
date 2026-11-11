@@ -1,0 +1,45 @@
+# Xcode
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+DerivedData/
+build/
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.xcresult
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved.bak
+
+# Signing material and keys: these live in the agentos keychain, never in git
+*.p8
+*.p12
+*.cer
+*.mobileprovision
+*.provisionprofile
+AuthKey_*.p8
+*.keychain
+*.keychain-db
+
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.local.xcconfig
+Secrets.xcconfig
+
+# Runtime output: receipts, snapshots and screenshots can hold private desktop content
+Receipts/
+Snapshots/
+*.axsnapshot.json
+traces/
+
+# Agent worktrees and tooling
+.worktrees/
+.claude/settings.local.json
+
+# macOS
+.DS_Store
