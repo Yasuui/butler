@@ -12,6 +12,8 @@ Read DESIGN.md before any UI work and docs/DECISIONS.md before any architecture 
 
 - Work happens in phases (DESIGN.md section 12). One phase is one or more PRs, each a small reviewable slice.
 - A phase ends with proof: Preview Snapshot variants (light/dark, Dynamic Type sizes, Live Activity states, widget timelines) and a screen recording of the flow. Then stop and wait for approval.
+- Phase 2a (headless runner, DECISIONS.md D9) has no UI: its proof is a CLI transcript, the receipt JSON with the full state trail, and a screen recording.
+- Models and harnesses are planners only (DECISIONS.md D8). Never let one own Errand state, Policy, approvals or receipts.
 - Before writing code in a phase, list the Apple APIs it uses with doc links in DESIGN.md section 12 and confirm their signatures in current docs. Never invent an API. If something in the brief does not exist, say so and propose the closest real option.
 
 ## Hard rules

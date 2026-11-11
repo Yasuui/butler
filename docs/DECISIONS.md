@@ -75,8 +75,37 @@ This Mac mini's account is already `agentos`, the dedicated agent user from the 
 
 ## D6. Browser automation (deferred to after Phase 2)
 
-The Phase 2 errand (Numbers to PDF) needs no browser. Playwright's bundled Chromium adds a Node runtime and several hundred MB of disk, and it runs in its own profile without your logged-in sessions. The alternative, driving Safari through the accessibility tree, uses your sessions but is less robust. Decide when the first web errand is chosen.
+The Phase 2a errand reads its sources through the planner (D9) and Numbers to PDF needs no browser. Playwright's bundled Chromium adds a Node runtime and several hundred MB of disk, and it runs in its own profile without your logged-in sessions. The alternative, driving Safari through the accessibility tree, uses your sessions but is less robust. Decide when the first web errand is chosen.
 
 ## D7. Repository visibility (Decided 2026-11-10: stays public)
 
 The repo is **public**. That costs nothing and keeps GitHub's free secret scanning and push protection, but the design, bundle IDs and CloudKit container names are visible. Nothing secret will be committed either way: the pre-commit hook and CI gitleaks block keys, and APNs keys and API keys live only in the `agentos` keychain. On a private personal repo, GitHub's push protection is not available for free, so the local hook and CI would be the only gate.
+
+## D8. Runtime boundary: harnesses and routers are replaceable planners (Decided 2026-11-10)
+
+**Decision:** anything that runs a model or an agent harness (`claude -p`, ClaudeForFoundationModels, Apple's on-device and PCC models, a router such as HarnessRouter) sits behind one `Planner` protocol in the runner. It proposes plans, step decisions and recoveries. It never owns Errand state, Policy, approvals, the Accessibility grant or receipts; those stay in the runner on the Mac mini, so a planner can be swapped without touching them.
+
+**HarnessRouter: evaluate later.** A one-off tool test on 2026-11-03 (Codex reading the vendor docs in a browser and typing a recommendation into TextEdit) concluded:
+
+- It exposes existing agent harnesses through one API, with sessions, streamed events, files, cancellation and structured failures. That fits the `Planner` slot.
+- Its hosted environment runs remote tasks. Driving native Mac apps would need a separate local executor and an authenticated bridge, which was not verified. Butler already has a local executor (D4), so the router would only ever plan.
+- The Community Edition is self-hosted Docker. A Linux container cannot reach native Mac apps.
+- The vendor benchmark is one synthetic task, five runs per configuration. Its ~475× cost range changes both model and harness; with the model fixed, the range is 1.5–2.1×. It does not establish savings or reliability for Butler.
+
+Caveats: that test kept no evidence (no receipt, file or recording) and used Codex's own accessibility tool and Playwright, not agent-desktop, so it does not de-risk D4 or D6. The vendor claims above were not independently re-checked. Sources: harnessrouter.ai/docs, /docs/environments, /open-source, /benchmarks.
+
+**How it gets re-evaluated:** once Phase 2a works, run the same errand through a `HarnessRouterPlanner` and compare the two receipts (cost, steps, recoveries). Adopt it only if the receipts show a gain.
+
+## D9. Phase order: headless runner (Phase 2a) before Phase 1 (Decided 2026-11-10)
+
+**Decision:** while D1 (Xcode 27 and disk space) is open, build the runner first as a SwiftPM package with the Command Line Tools. They include Swift 6.4 and the macOS 27 SDK with FoundationModels and ApplicationServices, which is all a headless runner needs. Phase 1 (components and previews) follows once Xcode is installed; Phase 2 then adds the menu bar extra and LaunchAgent on top of the same runner.
+
+Phase 2a is three slices, one PR each:
+
+1. **Runner core:** Errand state machine (DESIGN.md §4), Policy, append-only receipts, store, tests.
+2. **Executor:** agent-desktop CLI as a child process (D4), snapshot → act → re-snapshot, kill switch, Accessibility trust check.
+3. **Planner and first errand:** `Planner` protocol (D8) with `claude -p` as the first implementation (D2 route A). The first errand is "review a vendor's docs and save a recommendation in TextEdit": the planner reads the sources (no browser automation, so D6 stays deferred), the plan is approved at a CLI prompt, the executor writes and saves the document to ~/Inbox, and the Proof step attaches the file hash and sources to the receipt. Numbers to PDF becomes the second errand.
+
+**Proof for Phase 2a** replaces preview snapshots (there is no UI): a CLI transcript, the receipt JSON showing the full state trail, and a screen recording of the run.
+
+**Not covered by 2a:** iPhone approval, menu bar, Live Activity, learn-by-watching and browser automation.
