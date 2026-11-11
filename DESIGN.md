@@ -260,6 +260,18 @@ Status: **Verified** = read in current docs or WWDC26 on 2026-11-10. **Confirm**
 | Preview Snapshot MCP tool (variants, widget timelines, Live Activity states) | https://developer.apple.com/documentation/xcode-release-notes/xcode-27-release-notes | Verified |
 | Adopting Liquid Glass | https://developer.apple.com/documentation/technologyoverviews/adopting-liquid-glass | Verified |
 
+### Phase 2a: headless runner and first errand (DECISIONS.md D9)
+
+Built with SwiftPM and the Command Line Tools while Xcode 27 is pending. Same runner as Phase 2, without the menu bar or LaunchAgent.
+
+| API | Doc | Status |
+| --- | --- | --- |
+| Accessibility trust check (`AXIsProcessTrustedWithOptions`) | https://developer.apple.com/documentation/applicationservices/axuielement_h | Confirm |
+| agent-desktop CLI (JSON output, `error.disposition.retry`) | https://github.com/vercel-labs/agent-desktop | Verified |
+| Foundation Models: on-device `SystemLanguageModel` for triage and redaction | https://developer.apple.com/documentation/foundationmodels | Verified (framework present in the macOS 27 CLT SDK, checked 2026-11-10) |
+| `claude -p` headless with JSON output (D2 route A, D8 `Planner`) | https://docs.claude.com/en/docs/claude-code/sdk/sdk-headless | Confirm |
+| Swift Testing without Xcode | https://developer.apple.com/documentation/testing | Confirm |
+
 ### Phase 2: runner and first errand
 
 | API | Doc | Status |

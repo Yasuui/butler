@@ -8,7 +8,7 @@ A personal agent for the Mac mini and iPhone. It runs errands in native Mac apps
 
 ## Status
 
-Phase 0 (foundation): design contract, decisions and repository security. No app code yet.
+Phase 0 (foundation): design contract, decisions and repository security. Next is Phase 2a, a headless runner built with SwiftPM before the UI phases (docs/DECISIONS.md D9). No app code yet.
 
 ## Setup
 
